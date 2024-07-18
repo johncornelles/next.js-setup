@@ -72,12 +72,79 @@ for dynamic routing: `[postID]` name the folder within square brackets.
 
 # Backend API 
 - Next.js can be used to build a full-stack app with a backend API.
-- Folder Structure for the backend API withing next.js 
+
+## Best practice for api routing folder structure
+    ```
+    app
+      ├── api
+          ├── auth
+            ├── [...nextauth]
+                ├── routes.js
+    ```
+
+## Difference in routing in express and Next.js
+  - in express the routes are always on
+  - in Next.js the routes are only on when the page is requested
+  - models from mongoose holds the names which were already defined 
+  - if the model is not defined, it will be created
+  - this prevents us from redefining the models  
+  - const User = models.User || model("User", UserSchema)
+
+## Providers 
+  - we can add providers in the following way as HOC 
+   - ```
+      "use client"
+      import {SessionProvider} from "next-auth/react"
+      const Provider = ({session, children}) => {
+        return (
+          <SessionProvider session={session} >
+            { children}
+          </SessionProvider>
+        )
+      }
+
+      export default Provider
+    ```
+  - wrap the provider.jsx on top of everything inside layout.jsx
+    ```
+    <Provider>
+        <main className="">
+          <Nav />
+          {children}
+        </main>
+    </Provider>
+    ```
 
 
-```
-app
-  ├── api
-      ├── users
-        ├── routes.js
-```
+  - basic handler for Auth with google provider 
+    - ```
+    import { connectToDB } from "@utils/database";
+    import NextAuth from "next-auth";
+    import GoogleProvider from "next-auth/providers/google"
+
+    const handler = NextAuth({
+        providers: [
+            GoogleProvider({
+                clientId: process.env.GOOGLE_ID,
+                clientSecret: process.env.GOOGLE_CLIENT_SECRET
+            })
+        ],
+        async session({session}){
+            try {
+                await connectToDB()
+            } catch (error) {
+
+            }
+        },
+        async signIn({profile}){}
+    })
+
+    export {handler as GET, handler as POST}
+    ```
+
+  - get providers 
+   -```
+      const data = await getProviders();
+      setProviders(Object.values(data))
+    ```
+
